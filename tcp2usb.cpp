@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <WinSock2.h>
 #include <cstdint>
+#include <time.h>
 
 extern "C" void *__enclave_config = 0;
 
@@ -82,16 +83,20 @@ void run (uint32_t udpPort, uint32_t tcpPort, in_addr& remoteHost) {
 
     while (connection = connectHost (udpPort, tcpPort, remoteHost), connection != INVALID_SOCKET) {
         bool stillConnected;
+        time_t lastReceiption = time (0);
 
         do {
             char buffer [2000];
             char sentence [100];
+            time_t now = time (0);
 
             auto receivedBytes = recv (connection, buffer, sizeof (buffer), 0);
 
             stillConnected = true;
 
             if (receivedBytes > 0) {
+                lastReceiption = now;
+                
                 buffer [receivedBytes] = 0;
 
                 uint32_t count = 0;
@@ -120,9 +125,16 @@ void run (uint32_t udpPort, uint32_t tcpPort, in_addr& remoteHost) {
                     case WSAENETRESET:
                     case WSAECONNABORTED:
                     case WSAECONNRESET:
+                    case WSAETIMEDOUT:
                         printf ("Connection has been lost.\n");
 
                         stillConnected = false; break;
+                }
+            } else {
+                if ((now - lastReceiption) > 20) {
+                    printf ("Connection has been timed out.\n");
+
+                    stillConnected = false;
                 }
             }
         } while (stillConnected);
@@ -132,8 +144,10 @@ void run (uint32_t udpPort, uint32_t tcpPort, in_addr& remoteHost) {
 }
 
 void main (int argCount, char *args[]) {
-    uint32_t tcpPort = 0, udpPort = 0;
+    uint32_t tcpPort = 8010, udpPort = 8080;
     in_addr remoteHost = { 0 };
+
+    remoteHost.S_un.S_addr = htonl (inet_addr ("188.120.231.145"));
 
     printf ("TCP to USB converter tool\n\n");
     
