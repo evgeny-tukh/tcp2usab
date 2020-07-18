@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "type": "shell",
+        "label": "cl.exe build active file",
+        "command": "cl.exe",
+        "args": [
+          "/MTd",
+          "/Zi",
+          "/Fo:",
+          "build",
+          "/Fe:",
+          "tcp2usb.exe",
+          "tcp2usb.cpp",
+          "wsock32.lib",
+        ],
+        "problemMatcher": ["$msCompile"],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+}
