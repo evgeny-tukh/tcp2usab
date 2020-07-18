@@ -84,6 +84,9 @@ void run (uint32_t udpPort, uint32_t tcpPort, in_addr& remoteHost) {
     while (connection = connectHost (udpPort, tcpPort, remoteHost), connection != INVALID_SOCKET) {
         bool stillConnected;
         time_t lastReceiption = time (0);
+        uint32_t sentenceCount = 0;
+
+        printf ("Forwarding...\n");
 
         do {
             char buffer [2000];
@@ -101,11 +104,12 @@ void run (uint32_t udpPort, uint32_t tcpPort, in_addr& remoteHost) {
 
                 uint32_t count = 0;
 
-                auto sendSentence = [dataDistributor, &sentence, &count, &dataDestination] () {
+                auto sendSentence = [dataDistributor, &sentence, &count, &dataDestination, &sentenceCount] () {
                     sentence [count] = 0;
 
                     sendto (dataDistributor, sentence, count, 0, (const sockaddr *) & dataDestination, sizeof (dataDestination));
-                    printf (sentence);
+                    //printf (sentence);
+                    printf ("%d sentences forwarded\r", ++ sentenceCount);
 
                     count = 0;
                 };
